@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enigma Protegido</title>
+    <style>
+        body { 
+            background-color: #000; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; 
+            font-family: sans-serif; 
+            user-select: none; 
+            perspective: 1000px;
+        }
+
+        .palpitar-terror {
+            animation: palpitacion 0.4s infinite alternate, sacudida 0.1s infinite;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        @keyframes palpitacion {
+            0% { transform: scale(1); text-shadow: 0 0 20px #fff; }
+            100% { transform: scale(1.15); text-shadow: 0 0 50px #ff0000, 0 0 100px #ff0000; color: #ff3333; }
+        }
+
+        @keyframes sacudida {
+            0% { translate: 0px 0px; rotate: 0deg; }
+            20% { translate: -2px 3px; rotate: -1deg; }
+            40% { translate: 3px -1px; rotate: 1deg; }
+            60% { translate: -3px -2px; rotate: 0deg; }
+            80% { translate: 2px 2px; rotate: 1deg; }
+            100% { translate: 1px -3px; rotate: -1deg; }
+        }
+
+        .glitch-screen {
+            animation: romper-pantalla 0.15s infinite;
+            filter: invert(1);
+        }
+
+        @keyframes romper-pantalla {
+            0% { clip-path: inset(10% 0 30% 0); transform: skew(-5deg); }
+            20% { clip-path: inset(40% 0 10% 0); transform: skew(5deg); }
+            40% { clip-path: inset(15% 0 80% 0); transform: skew(-10deg); }
+            60% { clip-path: inset(80% 0 5% 0); transform: skew(8deg); }
+            80% { clip-path: inset(5% 0 55% 0); transform: skew(-3deg); }
+            100% { clip-path: inset(0 0 0 0); transform: skew(0deg); }
+        }
+
+        .arista-cuadrada {
+            position: absolute;
+            border: 2px solid #ff0000;
+            box-shadow: 0 0 15px #ff0000, inset 0 0 15px #ff0000;
+            width: 100px;
+            height: 100px;
+            top: 50%;
+            left: 50%;
+            margin-top: -50px;
+            margin-left: -50px;
+            transform-style: preserve-3d;
+            animation: tunel3D 2s linear forwards;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes tunel3D {
+            0% { transform: translateZ(-800px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateZ(600px) rotateX(360deg) rotateY(180deg) rotateZ(90deg); opacity: 0; border-color: #000; box-shadow: 0 0 30px #000; }
+        }
+
+        .contenedor-error {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: #0000aa; 
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace; 
+            padding: 40px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+        }
+
+        .cuadro-error {
+            max-width: 650px;
+            border: 4px solid #ffffff;
+            padding: 30px;
+            background-color: #0000aa;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+
+        .titulo-error {
+            background-color: #ffffff;
+            color: #0000aa;
+            font-weight: bold;
+            padding: 5px 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .texto-error {
+            text-align: left;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .pantalla-bios {
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            padding: 20px;
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10000;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .cursor-intermitente {
+            animation: parpadeo 0.8s infinite;
+        }
+
+        @keyframes parpadeo {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .enlace-six {
+            color: #00ff00;
+            text-decoration: none;
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 5px;
+            border: 2px solid #00ff00;
+            padding: 10px 40px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .enlace-six:hover {
+            background-color: #00ff00;
+            color: #000;
+            box-shadow: 0 0 25px #00ff00;
+            transform: scale(1.05);
+        }
+
+        /* CAPA PARA BLOQUEAR SI SALEN DE PANTALLA COMPLETA */
+        #capa-escape {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 999999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ff3333;
+            font-family: monospace;
+            text-align: center;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="capa-escape">
+        <h2 class="palpitar-terror" style="font-size: 2rem; margin-bottom: 30px;">ERROR</h2>
+        <button onclick="forzarRetorno()" style="background: transparent; border: 2px solid #ff3333; color: #ff3333; padding: 15px 30px; font-size: 1.2rem; cursor: pointer; font-family: monospace; box-shadow: 0 0 15px #ff0000;">
+            [ENTRAR A INTERFAZ]
+        </button>
+    </div>
+
+    <div id="w" style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;">
+        <div id="a" style="font-size:6rem;color:#fff;text-shadow:0 0 15px #fff;">◬</div>
+        <input id="b" type="password" style="background:transparent;border:0;border-bottom:1px solid #333;color:#fff;text-align:center;font-size:2rem;padding:10px;outline:none;letter-spacing:15px;margin-top:40px;width:250px;" autocomplete="off">
+    </div>
+
+    <script>
+        let glitchAudioNode = null;
+
+        function activarPantallaCompleta() {
+            const docElm = document.documentElement;
+            if (docElm.requestFullscreen) {
+                docElm.requestFullscreen();
+            } else if (docElm.mozRequestFullScreen) {
+                docElm.mozRequestFullScreen();
+            } else if (docElm.webkitRequestFullScreen) {
+                docElm.webkitRequestFullScreen();
+            } else if (docElm.msRequestFullscreen) {
+                docElm.msRequestFullscreen();
+            }
+        }
+
+        document.addEventListener('click', function iniciarEntorno() {
+            activarPantallaCompleta();
+            document.removeEventListener('click', iniciarEntorno);
+        });
+
+        // Monitorear si el usuario sale de pantalla completa (por usar ESC u otro método)
+        document.addEventListener('fullscreenchange', manejarCambioPantalla);
+        document.addEventListener('webkitfullscreenchange', manejarCambioPantalla);
+        document.addEventListener('mozfullscreenchange', manejarCambioPantalla);
+        document.addEventListener('MSFullscreenChange', manejarCambioPantalla);
+
+        function manejarCambioPantalla() {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            const capa = document.getElementById('capa-escape');
+            if (!isFullscreen) {
+                // Si salió de pantalla completa, le bloqueamos la vista con el cartel de error
+                capa.style.display = 'flex';
+            } else {
+                // Si vuelve a entrar, ocultamos el cartel
+                capa.style.display = 'none';
+            }
+        }
+
+        function forzarRetorno() {
+            activarPantallaCompleta();
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.keyCode == 123 || 
+                (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || 
+                (e.ctrlKey && e.keyCode == 85)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        setInterval(function() {
+            debugger;
+        }, 100);
+
+        const _0x4a2b = ['Yg==', 'YQ==', 'aW5wdXQ=', 'dmFsdWU=', 'MTM3', 'Yg==', 'ZA==', 'Zm9jdXM=', 'dGFyZ2V0', 'MDExMjM1OA=='];
+        const _0x1f3c = (idx) => atob(_0x4a2b[idx]);
+
+        const _b = document.getElementById(_0x1f3c(0));
+        _b.addEventListener(_0x1f3c(2), () => {
+            if (_b[_0x1f3c(3)] === _0x1f3c(4)) {
+                document.body.innerHTML += '<div id="w" style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;position:absolute;top:0;left:0;width:100vw;"><div id="c" style="font-size:6rem;color:#fff;text-shadow:0 0 15px #fff;">◈</div><input id="d" type="password" style="background:transparent;border:0;border-bottom:1px solid #333;color:#fff;text-align:center;font-size:2rem;padding:10px;outline:none;letter-spacing:15px;margin-top:40px;width:250px;"></div>';
+                document.getElementById('w').remove(); // Limpieza limpia del primer escenario
+                const _d = document.getElementById(_0x1f3c(6));
+                _d[_0x1f3c(7)]();
+                _d.addEventListener(_0x1f3c(2), (e) => {
+                    if (e[_0x1f3c(8)][_0x1f3c(3)] === _0x1f3c(9)) {
+                        
+                        document.body.innerHTML += `
+                            <div id="pantalla-caos" style="display:flex;align-items:center;justify-content:center;height:100vh;font-size:12rem;color:#fff;text-shadow:0 0 30px #fff;position:relative;z-index:10;">
+                                <span id="btn-infinito" class="palpitar-terror">∞</span>
+                            </div>
+                        `;
+                        document.getElementById('w').remove();
+
+                        document.getElementById('btn-infinito').addEventListener('click', function() {
+                            desatarCaos();
+                        });
+                    }
+                });
+            }
+        });
+
+        function comenzarAudioGlitch() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
+                
+                const bufferSize = 2 * ctx.sampleRate;
+                const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                const whiteNoise = ctx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filtro = ctx.createBiquadFilter();
+                filtro.type = 'lowpass';
+                filtro.frequency.setValueAtTime(400, ctx.currentTime);
+
+                const modulator = setInterval(() => {
+                    if(ctx.state === 'running') {
+                        filtro.frequency.setValueAtTime(Math.random() * 800 + 100, ctx.currentTime);
+                    } else {
+                        clearInterval(modulador);
+                    }
+                }, 50);
+
+                const gainNode = ctx.createGain();
+                gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+
+                whiteNoise.connect(filtro);
+                filtro.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                whiteNoise.start();
+                glitchAudioNode = ctx;
+            } catch(e) {
+                console.log("El navegador bloqueó el audio inicial.");
+            }
+        }
+
+        function detenerAudioGlitch() {
+            if (glitchAudioNode) {
+                glitchAudioNode.close();
+                glitchAudioNode = null;
+            }
+        }
+
+        function desatarCaos() {
+            comenzarAudioGlitch();
+            const contenedor = document.getElementById('pantalla-caos');
+            document.body.classList.add('glitch-screen');
+
+            const intervaloAristas = setInterval(() => {
+                const cubo = document.createElement('div');
+                cubo.classList.add('arista-cuadrada');
+                
+                let randomSize = Math.floor(Math.random() * 150) + 80;
+                cubo.style.width = randomSize + 'px';
+                cubo.style.height = randomSize + 'px';
+                cubo.style.marginTop = -(randomSize/2) + 'px';
+                cubo.style.marginLeft = -(randomSize/2) + 'px';
+
+                document.body.appendChild(cubo);
+                setTimeout(() => cubo.remove(), 2000);
+            }, 60);
+
+            setTimeout(() => {
+                clearInterval(intervaloAristas);
+                document.body.className = ''; 
+                contenedor.remove();
+                detenerAudioGlitch();
+
+                setTimeout(() => {
+                    mostrarErrorSistema();
+                }, 2000);
+            }, 5000); 
+        }
+
+        function mostrarErrorSistema() {
+            const errDiv = document.createElement('div');
+            errDiv.innerHTML = `
+                <div class="contenedor-error" style="cursor: none;">
+                    <div class="cuadro-error">
+                        <div class="titulo-error">ERROR FATAL DEL SISTEMA</div>
+                        <div class="texto-error">
+                            Se ha producido una excepción no esperada en 0x00F3A92. <br><br>
+                            El desbordamiento del búfer ha corrompido los sectores de memoria central. Las aristas del Enigma han sobrepasado los límites de ejecución.
+                            <br><br>
+                            * Presione ENTER para intentar reiniciar la interfaz.<br>
+                            * El uso del ratón ha sido deshabilitado por seguridad.
+                        </div>
+                        <div style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #0000aa; background: #ffffff; display: inline-block; padding: 10px 30px;">
+                            [ PRESIONE ENTER ]
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errDiv);
+
+            const desactivarClicks = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            };
+
+            document.addEventListener('click', desactivarClicks, true);
+            document.addEventListener('mousedown', desactivarClicks, true);
+
+            const detectarTeclaEnter = (e) => {
+                if (e.key === 'Enter' || e.keyCode === 13) {
+                    document.removeEventListener('click', desactivarClicks, true);
+                    document.removeEventListener('mousedown', desactivarClicks, true);
+                    document.removeEventListener('keydown', detectarTeclaEnter);
+                    errDiv.remove();
+                    iniciarBios();
+                }
+            };
+            document.addEventListener('keydown', detectarTeclaEnter);
+        }
+
+        function iniciarBios() {
+            const biosDiv = document.createElement('div');
+            biosDiv.id = "consola-bios";
+            biosDiv.className = "pantalla-bios";
+            document.body.appendChild(biosDiv);
+
+            const logsBios = [
+                "AMIBIOS(C) 2026 American Megatrends, Inc.",
+                "BIOS Date: 05/26/26 21:54:38 Ver: 08.00.16",
+                "CPU: Genuine Intel(R) CPU @ 3.40GHz",
+                "Speed: 3400MHz",
+                "",
+                "Press DEL to run Setup, F11 to election Boot Menu",
+                "Checking NVRAM...",
+                "Initializing USB Controllers .. Done.",
+                "16384MB OK",
+                "",
+                "USB Device(s): 1 Keyboard, 1 Mouse, 2 Storage Devices",
+                "Auto-Detecting AHCI PORT 1 .. IDE Hard Disk",
+                "Auto-Detecting AHCI PORT 2 .. ATAPI CDROM",
+                "SATA Port 1: WDC WD10EZEX-00WN4A0 01.01A01",
+                "Capable and Status OK",
+                "",
+                "CRITICAL ERROR: Sector 0x00F3A92 is corrupted.",
+                "The Enigma Protocol has altered core system files.",
+                "Booting in recovery mode...",
+                "Loading kernel...",
+                "Segmentation fault (core dumped)",
+                "System halted."
+            ];
+
+            let index = 0;
+
+            function escribirLinea() {
+                if (index < logsBios.length) {
+                    const cursorPrevio = document.querySelector('.cursor-intermitente');
+                    if (cursorPrevio) cursorPrevio.remove();
+
+                    biosDiv.innerHTML += logsBios[index] + "<br>";
+                    biosDiv.innerHTML += `<span class="cursor-intermitente">_</span>`;
+                    biosDiv.scrollTop = biosDiv.scrollHeight;
+                    index++;
+
+                    let tiempoEspera = Math.floor(Math.random() * 200) + 50;
+                    if (logsBios[index - 1].includes("CRITICAL") || logsBios[index - 1].includes("Loading")) {
+                        tiempoEspera = 800; 
+                    }
+                    setTimeout(escribirLinea, tiempoEspera);
+                } else {
+                    setTimeout(() => {
+                        biosDiv.remove();
+                        mostrarSimbolosFinales();
+                    }, 2000);
+                }
+            }
+            escribirLinea();
+        }
+
+        function mostrarSimbolosFinales() {
+            const finalDiv = document.createElement('div');
+            finalDiv.innerHTML = `
+                <div id="w-final" style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;position:absolute;top:0;left:0;width:100vw;">
+                    <div id="a-final" style="font-size:5rem;color:#fff;text-shadow:0 0 15px #fff;letter-spacing: 20px; text-align:center; margin-left:20px;">
+                        ◬ ◈ <span style="color:#ff3333; text-shadow:0 0 20px #ff0000;">🜏</span>
+                    </div>
+                    <input id="b-final" type="password" style="background:transparent;border:0;border-bottom:1px solid #555;color:#fff;text-align:center;font-size:2rem;padding:10px;outline:none;letter-spacing:15px;margin-top:40px;width:300px;" autocomplete="off">
+                </div>
+            `;
+            document.body.appendChild(finalDiv);
+            
+            const inputFinal = document.getElementById('b-final');
+            inputFinal.focus();
+            inputFinal.addEventListener('input', () => {
+                if (inputFinal.value === '618') {
+                    document.getElementById('w-final').remove();
+                    document.body.innerHTML += `
+                        <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;color:#00ff00;font-family:monospace;text-align:center;padding:20px;">
+                            <h1 style="font-size:3rem;text-shadow:0 0 10px #00ff00;margin-bottom:20px;">ACCESO CONCEDIDO</h1>
+                            <p style="font-size:1.2rem;max-width:600px;line-height:1.8;margin-bottom:30px;">.</p>
+                            <a href="https://www.youtube.com/watch?v=QDia3e12czc" target="_blank" class="enlace-six">SIX</a>
+                        </div>
+                    `;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
